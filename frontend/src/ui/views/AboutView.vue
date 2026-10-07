@@ -54,17 +54,11 @@ const { health, loading, error } = useHealth();
 
         <section>
           <h3>Vos données</h3>
-          <ul>
-            <li><strong>Aucun compte</strong> n’est nécessaire, et le site ne dépose aucun cookie.</li>
-            <li>
-              <strong>Aucune donnée n’est stockée</strong> : ni base de données, ni historique, vos
-              questions et les réponses ne sont pas enregistrées.
-            </li>
-            <li>
-              Seule exception, pour limiter les abus : votre adresse IP et l’heure de vos requêtes
-              restent en mémoire 24 heures au plus, sans jamais être écrites sur disque.
-            </li>
-          </ul>
+          <p>
+            <strong>Nous ne stockons aucune donnée.</strong> Aucun compte n’est nécessaire, aucun
+            cookie n’est déposé, et vos questions comme les réponses ne sont enregistrées nulle part :
+            ni base de données, ni historique.
+          </p>
         </section>
 
         <section>
