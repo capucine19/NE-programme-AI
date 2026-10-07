@@ -14,7 +14,7 @@ const { health, loading, error } = useHealth();
     <main class="wrap">
       <article class="card">
         <a class="back" :href="HOME_HASH">← Poser une question</a>
-        <h2>Comment ça marche</h2>
+        <h2>En savoir plus sur le projet</h2>
 
         <section>
           <h3>Ce que fait cet outil</h3>
