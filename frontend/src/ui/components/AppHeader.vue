@@ -1,5 +1,6 @@
 <script setup lang="ts">
 defineProps<{
+  view?: "programme" | "economie";
   hasApiKey?: boolean;
   loading?: boolean;
   error?: string | null;
@@ -35,11 +36,26 @@ defineProps<{
             <span>Programme — questions sourcées</span>
           </div>
         </div>
+        <nav class="nav-links" aria-label="Sections">
+          <a href="#/" :class="{ on: view !== 'economie' }">Programme</a>
+          <a href="#/economie" :class="{ on: view === 'economie' }">Économie</a>
+        </nav>
         <p class="nav-note">Pas le site officiel du parti</p>
       </div>
     </div>
 
-    <section class="hero">
+    <section v-if="view === 'economie'" class="hero">
+      <div class="hero-inner">
+        <p class="eyebrow">Les chiffres</p>
+        <h1>L’économie de la France en données</h1>
+        <p class="lede">
+          Dette, taux de l’OAT, déficit, dépenses et protection sociale : les chiffres clés, à partir
+          des données ouvertes d’Eurostat.
+        </p>
+      </div>
+    </section>
+
+    <section v-else class="hero">
       <div class="hero-inner">
         <p class="eyebrow">Restons informés</p>
         <h1>Interrogez le programme de David Lisnard</h1>
@@ -165,6 +181,28 @@ defineProps<{
   font-weight: 500;
 }
 
+.nav-links {
+  display: flex;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+.nav-links a {
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--muted);
+}
+
+.nav-links a.on {
+  background: var(--navy);
+  color: var(--white);
+}
+
 .nav-note {
   margin: 0;
   font-size: 0.72rem;
@@ -236,6 +274,25 @@ h1 {
 @media (max-width: 640px) {
   .nav-note {
     display: none;
+  }
+
+  /* Les onglets passent sous la marque au lieu de déborder de l'écran */
+  .nav-inner {
+    flex-wrap: wrap;
+  }
+
+  .brand-text span {
+    display: none;
+  }
+
+  .nav-links {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .nav-links a {
+    flex: 1;
+    text-align: center;
   }
 
   h1 {

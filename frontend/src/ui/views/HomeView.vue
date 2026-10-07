@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { useHealth } from "@app/useHealth";
 import { useProgrammeQuery } from "@app/useProgrammeQuery";
 import AppHeader from "@ui/components/AppHeader.vue";
@@ -6,6 +7,8 @@ import AppFooter from "@ui/components/AppFooter.vue";
 import ModeTabs from "@ui/components/ModeTabs.vue";
 import QueryForm from "@ui/components/QueryForm.vue";
 import ResultPanel from "@ui/components/ResultPanel.vue";
+
+const props = defineProps<{ initialQuestion?: string }>();
 
 const { health, loading: healthLoading, error: healthError } = useHealth();
 const {
@@ -22,6 +25,14 @@ const {
   setMode,
   submit,
 } = useProgrammeQuery();
+
+// Arrivée depuis un bouton « Que propose le programme sur ce sujet ? » : on pose la question.
+onMounted(() => {
+  if (props.initialQuestion && props.initialQuestion.length >= 3) {
+    query.value = props.initialQuestion;
+    void submit();
+  }
+});
 </script>
 
 <template>
