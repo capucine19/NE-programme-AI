@@ -1,67 +1,26 @@
 import type { ShareCard } from "@domain/models";
 import { HASHTAG, truncate } from "@domain/shareCard";
+import {
+  GOLD,
+  NAVY,
+  NAVY_DEEP,
+  canvasToPng,
+  clampLines,
+  drawFlagMark,
+  ellipsize,
+  font,
+  loadFonts,
+  roundRect,
+  setSpacing,
+  wrap,
+  type Ctx,
+} from "./canvasKit";
 
 /** Visuel 16:9 (format affiché en entier dans le fil X), rendu en 2x pour la netteté. */
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 675;
 const SCALE = 2;
 const PAD = 60;
-
-const NAVY = "#1a2668";
-const NAVY_DEEP = "#141c4f";
-const GOLD = "#b5a981";
-const FONT = "Montserrat, system-ui, sans-serif";
-
-type Ctx = CanvasRenderingContext2D;
-
-function font(weight: number, size: number): string {
-  return `${weight} ${size}px ${FONT}`;
-}
-
-function setSpacing(ctx: Ctx, px: number) {
-  if ("letterSpacing" in ctx) ctx.letterSpacing = `${px}px`;
-}
-
-function wrap(ctx: Ctx, text: string, maxWidth: number): string[] {
-  const lines: string[] = [];
-  let line = "";
-  for (const word of text.split(/\s+/)) {
-    const next = line ? `${line} ${word}` : word;
-    if (line && ctx.measureText(next).width > maxWidth) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = next;
-    }
-  }
-  if (line) lines.push(line);
-  return lines;
-}
-
-/** Coupe à maxLines lignes, avec points de suspension sur la dernière. */
-function clampLines(ctx: Ctx, text: string, maxWidth: number, maxLines: number): string[] {
-  const lines = wrap(ctx, text, maxWidth);
-  if (lines.length <= maxLines) return lines;
-  const kept = lines.slice(0, maxLines);
-  let last = `${kept[maxLines - 1]}…`;
-  while (ctx.measureText(last).width > maxWidth && last.length > 1) {
-    last = `${last.slice(0, -2).trimEnd()}…`;
-  }
-  kept[maxLines - 1] = last;
-  return kept;
-}
-
-function ellipsize(ctx: Ctx, text: string, maxWidth: number): string {
-  if (ctx.measureText(text).width <= maxWidth) return text;
-  let out = text;
-  while (out.length > 1 && ctx.measureText(`${out}…`).width > maxWidth) out = out.slice(0, -1);
-  return `${out.trimEnd()}…`;
-}
-
-function roundRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, r);
-}
 
 function drawLabel(ctx: Ctx, text: string, x: number, y: number) {
   ctx.font = font(700, 18);
@@ -90,15 +49,7 @@ function drawBackground(ctx: Ctx) {
 
 function drawBrand(ctx: Ctx) {
   const y = PAD - 14;
-  const stripes = ["#002395", "#ffffff", "#ed2939"];
-  ctx.save();
-  roundRect(ctx, PAD, y, 54, 36, 6);
-  ctx.clip();
-  stripes.forEach((color, i) => {
-    ctx.fillStyle = color;
-    ctx.fillRect(PAD + i * 18, y, 18, 36);
-  });
-  ctx.restore();
+  drawFlagMark(ctx, PAD, y);
 
   ctx.textBaseline = "middle";
   ctx.font = font(800, 24);
@@ -169,18 +120,6 @@ function drawFooter(ctx: Ctx, card: ShareCard, siteHost: string) {
   ctx.fillText("Outil citoyen non officiel · réponses tirées de unenouvelleenergie.fr", PAD, CARD_HEIGHT - 20);
 }
 
-async function loadFonts() {
-  try {
-    await Promise.all(
-      [font(500, 14), font(600, 30), font(700, 18), font(800, 40)].map((f) =>
-        document.fonts.load(f),
-      ),
-    );
-  } catch {
-    // Police système en repli
-  }
-}
-
 export async function renderShareCard(card: ShareCard, siteHost: string): Promise<Blob> {
   await loadFonts();
 
@@ -223,10 +162,5 @@ export async function renderShareCard(card: ShareCard, siteHost: string): Promis
 
   drawFooter(ctx, card, siteHost);
 
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("Échec de la création de l'image."))),
-      "image/png",
-    );
-  });
+  return canvasToPng(canvas);
 }

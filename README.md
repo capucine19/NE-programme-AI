@@ -52,6 +52,42 @@ Sans embeddings (ou sans clé), repli automatique sur la recherche lexicale seul
 
 ---
 
+## Page Économie
+
+Accessible via `#/economie` (onglet « Économie » du bandeau), graphiques ECharts :
+
+- **Dette publique** : compteur + évolution + comparaison avec DE / IT / ES / zone euro.
+- **Dépenses publiques et prestations sociales** : compteurs « depuis le 1er janvier »
+  (dépenses totales, prestations sociales, retraites), évolution des dépenses, répartition par
+  fonction (COFOG, avec curseur d'année), prestations en espèces / en nature, retraites,
+  comparaison européenne.
+
+- **Classement UE27** : dépenses publiques en % du PIB par pays, avec curseur d'année.
+- **« Que propose le programme sur ce sujet ? »** : bouton sous chaque graphique. Il ouvre
+  `#/?q=<question>` : la page d'accueil pose la question en mode « Demander » (un appel
+  Mistral, soumis aux limites habituelles) puis retire `?q=` de l'adresse.
+
+- **Export en image** : bouton « Exporter en image » sous chaque graphique. Le PNG (2400 px de
+  large) contient le titre, le graphique, la source (Eurostat + jeu de données) et l'adresse du
+  site. Il est rendu sur une instance ECharts hors écran de taille fixe : même image sur
+  téléphone et sur ordinateur. Sur mobile, il ouvre la feuille de partage native.
+- **Partager sur X** : même image, avec un post prérempli (titre, source, lien vers la page,
+  hashtag). Sur ordinateur, l'image est copiée dans le presse-papiers et le composeur X s'ouvre :
+  il suffit de coller (X n'accepte pas d'image par lien).
+
+- **Sources** : Eurostat, sans clé API : `gov_10q_ggdebt` (dette, trimestrielle),
+  `gov_10a_main` (dépenses totales et prestations sociales, annuelles), `gov_10a_exp`
+  (dépenses par fonction COFOG, annuelles ; « retraites » = fonction vieillesse GF1002).
+  `python scripts/fetch_eurostat.py` écrit `data/economie.json`, servi par
+  `/api/economie/dette` et `/api/economie/depenses` (le site ne dépend pas d'Eurostat à
+  l'exécution).
+- **Compteurs** : ce n'est **pas** du temps réel, et la page l'indique. Dette : dernier chiffre
+  trimestriel prolongé au rythme moyen des 4 derniers trimestres. Dépenses : dernier montant
+  annuel publié, prolongé jusqu'à l'année en cours avec la croissance de la dernière année, puis
+  réparti uniformément depuis le 1er janvier.
+
+---
+
 ## Arborescence
 
 ```

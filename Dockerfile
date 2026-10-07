@@ -25,6 +25,9 @@ ADD https://www.unenouvelleenergie.fr/pages-sitemap.xml /tmp/sitemaps/pages.xml
 ADD https://www.unenouvelleenergie.fr/questions-sitemap.xml /tmp/sitemaps/questions.xml
 RUN python scripts/scrape_programme.py \
     || echo "AVERTISSEMENT : scrape échoué, corpus versionné conservé"
+# Dette publique (Eurostat, sans clé). Repli sur le data/economie.json versionné.
+RUN python scripts/fetch_eurostat.py \
+    || echo "AVERTISSEMENT : Eurostat injoignable, données versionnées conservées"
 # Variables Railway passées au build. La clé n'est utilisée que si des
 # passages ont changé ; sans clé dans ce cas, le build échoue.
 ARG MISTRAL_API_KEY

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -22,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env", override=True)
 
 DIST_DIR = ROOT / "frontend" / "dist"
+ECONOMIE_PATH = ROOT / "data" / "economie.json"
 
 app = FastAPI(title="Programme Lisnard — questions sourcées", version="0.3.0")
 
@@ -174,6 +176,34 @@ def chat(body: QueryRequest, request: Request) -> ChatResponse:
         found=found,
         retrieval=retrieval,
     )
+
+
+def _load_economie() -> dict:
+    """Données Eurostat pré-téléchargées par scripts/fetch_eurostat.py."""
+    if not ECONOMIE_PATH.exists():
+        raise HTTPException(
+            status_code=503,
+            detail="Données économiques absentes. Lancez `python scripts/fetch_eurostat.py`.",
+        )
+    return json.loads(ECONOMIE_PATH.read_text(encoding="utf-8"))
+
+
+@app.get("/api/economie/dette")
+def economie_dette() -> dict:
+    data = _load_economie()
+    data.pop("depenses", None)
+    return data
+
+
+@app.get("/api/economie/depenses")
+def economie_depenses() -> dict:
+    spending = _load_economie().get("depenses")
+    if spending is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Données de dépenses absentes. Relancez `python scripts/fetch_eurostat.py`.",
+        )
+    return spending
 
 
 @app.get("/s/{code}")
