@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ABOUT_HASH, GITHUB_URL } from "@ui/siteLinks";
 </script>
 
 <template>
@@ -25,6 +26,8 @@
         </div>
         <div>
           <h3>À propos</h3>
+          <a :href="ABOUT_HASH">Comment ça marche</a>
+          <a :href="GITHUB_URL" target="_blank" rel="noopener noreferrer">Code source sur GitHub</a>
           <p class="note">
             Cet outil n’est pas affilié au parti. Il cite uniquement le contenu public de Nouvelle Énergie.
           </p>
