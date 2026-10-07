@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { QueryMode } from "@domain/models";
+import { SUGGESTIONS } from "../suggestions";
 import BaseButton from "./BaseButton.vue";
 
 defineProps<{
@@ -15,6 +16,12 @@ const emit = defineEmits<{
 
 function onSubmit(e: Event) {
   e.preventDefault();
+  emit("submit");
+}
+
+/** Raccourci : remplit le champ et lance directement la requête. */
+function pick(suggestion: string) {
+  emit("update:modelValue", suggestion);
   emit("submit");
 }
 </script>
@@ -53,6 +60,22 @@ function onSubmit(e: Event) {
               : "Chercher"
         }}
       </BaseButton>
+    </div>
+
+    <div class="suggestions">
+      <p class="hint">Essayez en un clic :</p>
+      <div class="chips">
+        <button
+          v-for="suggestion in SUGGESTIONS[mode]"
+          :key="suggestion"
+          type="button"
+          class="chip"
+          :disabled="loading"
+          @click="pick(suggestion)"
+        >
+          {{ suggestion }}
+        </button>
+      </div>
     </div>
   </form>
 </template>
@@ -100,5 +123,55 @@ textarea::placeholder {
 
 .row :deep(.btn) {
   justify-self: start;
+}
+
+.suggestions {
+  margin-top: 0.35rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.hint {
+  margin: 0 0 0.55rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.chip {
+  padding: 0.42rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--navy);
+  font: 600 0.78rem/1.3 var(--font);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--white);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.chip:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 </style>
