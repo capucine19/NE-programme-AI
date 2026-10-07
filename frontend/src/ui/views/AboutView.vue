@@ -53,6 +53,32 @@ const { health, loading, error } = useHealth();
         </section>
 
         <section>
+          <h3>Vos données</h3>
+          <ul>
+            <li><strong>Aucun compte</strong> n’est nécessaire, et le site ne dépose aucun cookie.</li>
+            <li>
+              <strong>Aucune donnée n’est stockée</strong> : ni base de données, ni historique, vos
+              questions et les réponses ne sont pas enregistrées.
+            </li>
+            <li>
+              Seule exception, pour limiter les abus : votre adresse IP et l’heure de vos requêtes
+              restent en mémoire 24 heures au plus, sans jamais être écrites sur disque.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>Propulsé par Mistral AI</h3>
+          <p>
+            La recherche par le sens (<em>mistral-embed</em>) et la rédaction des réponses
+            (<em>mistral-small</em>) reposent sur les modèles de
+            <a href="https://mistral.ai/" target="_blank" rel="noopener noreferrer">Mistral AI</a>,
+            entreprise française. Votre question leur est transmise pour produire la réponse et
+            relève de leur politique de confidentialité : n’y indiquez pas d’informations personnelles.
+          </p>
+        </section>
+
+        <section>
           <h3>Limites</h3>
           <ul>
             <li>Une IA peut mal résumer : vérifiez toujours la source citée.</li>
