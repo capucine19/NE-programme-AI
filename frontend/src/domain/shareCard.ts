@@ -14,12 +14,15 @@ const POST_HASHTAG_SUFFIX = `\n\n${HASHTAG}`;
 
 const EN_BREF = /^[\s>*_-]*en bref\s*[*_]*\s*:\s*[*_]*\s*(.+)$/im;
 const SOURCE_TAG = /\[Source\s*:[^\]]*\]/gi;
+// Renvoi numéroté vers un extrait : « … » [2]
+const CITATION = /\s*\[(\d{1,2})\]/g;
 const URL_RE = /https?:\/\/[^\s\])>»"]+/;
 
-/** Markdown du LLM → texte brut d'une ligne, sans les balises [Source : …]. */
+/** Markdown du LLM → texte brut d'une ligne, sans les renvois [n] ni [Source : …]. */
 export function toPlainText(markdown: string): string {
   return markdown
     .replace(SOURCE_TAG, "")
+    .replace(CITATION, "")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .replace(/^\s{0,3}(#{1,6}|>|[-*+]|\d+[.)])\s+/gm, "")
     .replace(/\*\*|__|[*`]/g, "")
@@ -57,6 +60,11 @@ export function extractSource(
   answer: string,
   sources: ProgrammeSource[],
 ): { title: string; url: string; shortPath: string | null } {
+  for (const match of answer.matchAll(CITATION)) {
+    const cited = sources[Number(match[1]) - 1];
+    if (cited) return { title: cited.pageTitle, url: cited.url, shortPath: cited.shortPath };
+  }
+  // Ancien format : [Source : titre — section — paragraphe — url]
   const start = answer.search(/\[Source\s*:/i);
   if (start >= 0) {
     const tag = answer.slice(start, start + 400);

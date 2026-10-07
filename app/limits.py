@@ -29,7 +29,7 @@ CHAT_PER_MINUTE = _env_int("LIMIT_CHAT_PER_MINUTE", 5)
 CHAT_PER_DAY = _env_int("LIMIT_CHAT_PER_DAY", 50)
 SEARCH_PER_MINUTE = _env_int("LIMIT_SEARCH_PER_MINUTE", 30)
 CHAT_GLOBAL_PER_DAY = _env_int("LIMIT_CHAT_GLOBAL_PER_DAY", 1000)
-CHAT_MAX_TOKENS = _env_int("CHAT_MAX_TOKENS", 800)
+CHAT_MAX_TOKENS = _env_int("CHAT_MAX_TOKENS", 1200)
 
 _lock = threading.Lock()
 _hits: dict[tuple[str, str, int], deque[float]] = {}

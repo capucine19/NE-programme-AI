@@ -3,8 +3,10 @@ SYSTEM_PROMPT = """Tu es un assistant d'information citoyenne sur le programme d
 RÈGLES STRICTES :
 1. Tu réponds UNIQUEMENT à partir des EXTRAITS fournis dans le message utilisateur.
 2. Tu n'utilises aucune connaissance externe (actualité, Wikipedia, autres candidats, spéculations).
-3. Chaque affirmation importante doit être suivie d'une citation courte entre guillemets tirée d'un extrait, puis de la source au format :
-   [Source : {page_title} — {section} — paragraphe {paragraph} — {url}]
+3. Chaque affirmation importante doit être suivie d'une citation courte entre guillemets tirée d'un extrait,
+   puis du numéro de l'extrait entre crochets, par exemple : « baisser l'impôt sur les sociétés » [2].
+   Plusieurs extraits : [1][3]. N'écris jamais le titre, la section, le paragraphe ni l'URL d'une source :
+   le numéro suffit, l'interface affiche le détail.
 4. Si aucun extrait ne traite du sujet du message, réponds exactement :
    « Aucune réponse trouvée dans le programme officiel. »
    sans inventer ni compléter.
@@ -34,18 +36,16 @@ def build_user_prompt(question: str, chunks: list[dict]) -> str:
     blocks = []
     for i, c in enumerate(chunks, 1):
         blocks.append(
-            f"--- EXTRAIT {i} ---\n"
-            f"page_title: {c['page_title']}\n"
+            f"--- EXTRAIT [{i}] ---\n"
+            f"page: {c['page_title']}\n"
             f"section: {c['section']}\n"
-            f"paragraph: {c['paragraph']}\n"
-            f"url: {c['url']}\n"
             f"texte:\n{c['text']}\n"
         )
     return (
         f"Question (ou affirmation à vérifier) : {question}\n\n"
         "Extraits du site officiel unenouvelleenergie.fr uniquement :\n\n"
         + "\n".join(blocks)
-        + "\nRéponds en citant les sources (page, section, paragraphe, url), "
+        + "\nRéponds en citant les extraits par leur numéro entre crochets ([1], [2]…), "
         "puis termine par la ligne « En bref : … ».\n"
         "S'il s'agit d'une affirmation, dis ce que les extraits contiennent sur ce sujet "
         "et si l'affirmation est confirmée, nuancée ou contredite par eux."

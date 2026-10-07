@@ -165,7 +165,10 @@ def chat(body: QueryRequest, request: Request) -> ChatResponse:
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"Erreur Mistral : {exc}") from exc
 
-    answer = (completion.choices[0].message.content or "").strip()
+    choice = completion.choices[0]
+    answer = (choice.message.content or "").strip()
+    if str(choice.finish_reason).lower().endswith("length"):
+        answer += "…\n\n*Réponse interrompue : limite de longueur atteinte.*"
     found = "aucune réponse trouvée" not in answer.lower()
     return ChatResponse(
         answer=answer,

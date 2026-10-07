@@ -3,12 +3,15 @@ import type { ProgrammeSource } from "@domain/models";
 
 defineProps<{
   source: ProgrammeSource;
+  /** Numéro du renvoi [n] dans la réponse (mode « Demander »). */
+  index?: number;
 }>();
 </script>
 
 <template>
   <li class="card">
     <p class="meta">
+      <span v-if="index" class="badge">{{ index }}</span>
       {{ source.pageTitle }} — {{ source.section }} — paragraphe
       {{ source.paragraph }}
     </p>
@@ -42,6 +45,20 @@ defineProps<{
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 500;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 1.15rem;
+  margin-right: 0.3rem;
+  padding: 0 0.28rem;
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+  color: var(--white);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.15rem;
+  text-align: center;
 }
 
 .scores {

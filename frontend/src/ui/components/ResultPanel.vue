@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { ProgrammeSource, QueryMode, RetrievalMode } from "@domain/models";
 import { renderMarkdown } from "../markdown";
+import CitationPopover from "./CitationPopover.vue";
 import SharePanel from "./SharePanel.vue";
 import SourceCard from "./SourceCard.vue";
 
@@ -15,7 +16,65 @@ const props = defineProps<{
   question: string;
 }>();
 
-const answerHtml = computed(() => (props.answer ? renderMarkdown(props.answer) : ""));
+const answerHtml = computed(() =>
+  props.answer ? renderMarkdown(props.answer, props.sources.length) : "",
+);
+
+// --- Bulle de source ouverte depuis une pastille [n] --------------------------
+const POPOVER_MAX_WIDTH = 352;
+const answerWrap = ref<HTMLElement | null>(null);
+const citation = ref<{ index: number; top: number; left: number; width: number } | null>(null);
+let activeButton: HTMLButtonElement | null = null;
+
+function closeCitation() {
+  activeButton?.setAttribute("aria-expanded", "false");
+  activeButton?.classList.remove("active");
+  activeButton = null;
+  citation.value = null;
+}
+
+function onAnswerClick(event: MouseEvent) {
+  const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button.cite");
+  const wrap = answerWrap.value;
+  if (!button || !wrap) return;
+  const index = Number(button.dataset.cite);
+  if (activeButton === button) {
+    closeCitation();
+    return;
+  }
+  closeCitation();
+  const wrapRect = wrap.getBoundingClientRect();
+  const rect = button.getBoundingClientRect();
+  const width = Math.min(POPOVER_MAX_WIDTH, wrap.clientWidth);
+  const left = Math.max(0, Math.min(rect.left - wrapRect.left - 16, wrap.clientWidth - width));
+  citation.value = { index, top: rect.bottom - wrapRect.top + 6, left, width };
+  activeButton = button;
+  button.setAttribute("aria-expanded", "true");
+  button.classList.add("active");
+}
+
+function onDocumentPointer(event: PointerEvent) {
+  const target = event.target as HTMLElement;
+  if (citation.value && !target.closest(".popover, button.cite")) closeCitation();
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === "Escape" && citation.value) {
+    const button = activeButton;
+    closeCitation();
+    button?.focus();
+  }
+}
+
+watch(answerHtml, closeCitation);
+onMounted(() => {
+  document.addEventListener("pointerdown", onDocumentPointer);
+  document.addEventListener("keydown", onKeydown);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("pointerdown", onDocumentPointer);
+  document.removeEventListener("keydown", onKeydown);
+});
 </script>
 
 <template>
@@ -23,7 +82,18 @@ const answerHtml = computed(() => (props.answer ? renderMarkdown(props.answer) :
     <h2>{{ mode === "ask" ? "Réponse" : "Résultats" }}</h2>
 
     <p v-if="error" class="error">{{ error }}</p>
-    <div v-else-if="answer" class="answer" v-html="answerHtml" />
+    <div v-else-if="answer" ref="answerWrap" class="answer-wrap">
+      <div class="answer" @click="onAnswerClick" v-html="answerHtml" />
+      <CitationPopover
+        v-if="citation && sources[citation.index - 1]"
+        :index="citation.index"
+        :source="sources[citation.index - 1]"
+        :top="citation.top"
+        :left="citation.left"
+        :width="citation.width"
+        @close="closeCitation"
+      />
+    </div>
 
     <p v-if="retrieval && !error" class="retrieval">
       Récupération : {{ retrieval }}
@@ -37,8 +107,20 @@ const answerHtml = computed(() => (props.answer ? renderMarkdown(props.answer) :
       :sources="sources"
     />
 
-    <template v-if="sources.length">
-      <h3>{{ mode === "ask" ? "Passages utilisés" : "Passages trouvés" }}</h3>
+    <details v-if="sources.length && mode === 'ask'" class="used">
+      <summary>Passages utilisés ({{ sources.length }})</summary>
+      <ul class="sources">
+        <SourceCard
+          v-for="(source, i) in sources"
+          :key="`${source.url}-${source.paragraph}-${i}`"
+          :source="source"
+          :index="i + 1"
+        />
+      </ul>
+    </details>
+
+    <template v-else-if="sources.length">
+      <h3>Passages trouvés</h3>
       <ul class="sources">
         <SourceCard
           v-for="(source, i) in sources"
@@ -79,9 +161,49 @@ h3 {
   font-weight: 700;
 }
 
+.answer-wrap {
+  position: relative;
+}
+
 .answer {
   line-height: 1.6;
   overflow-wrap: anywhere;
+}
+
+/* Pastille de renvoi [n] vers une source */
+.answer :deep(.cite) {
+  display: inline-block;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  margin: 0 0 0 0.15rem;
+  padding: 0 0.28rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--navy);
+  font: 700 0.66rem/1.05rem var(--font);
+  vertical-align: 0.3em;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.answer :deep(.cite + .cite) {
+  margin-left: 0.1rem;
+}
+
+.answer :deep(.cite:hover),
+.answer :deep(.cite.active) {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--white);
+}
+
+.answer :deep(.cite:focus-visible) {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
 }
 
 .answer :deep(> :first-child) {
@@ -145,6 +267,29 @@ h3 {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 500;
+}
+
+.used {
+  margin-top: 1.2rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.8rem;
+}
+
+.used summary {
+  cursor: pointer;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.used summary:hover {
+  color: var(--navy);
+}
+
+.used[open] summary {
+  margin-bottom: 0.7rem;
 }
 
 .sources {
